@@ -64,7 +64,7 @@
   if (stats.defenseTDs) points += stats.defenseTDs * 3; // 3 points per defensive/special teams TD (ESPN)
 
   return Math.round(points * 10) / 10; // Round to 1 decimal place
-}
+
 
 // Calculate total team score
 export const calculateTeamScore = (team, year) => {
@@ -74,4 +74,5 @@ export const calculateTeamScore = (team, year) => {
     return total + calculateFantasyPoints(stats);
   }, 0);
 };
+
 
