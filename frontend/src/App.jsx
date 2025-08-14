@@ -6,7 +6,7 @@ import SimulateButton from './components/SimulateButton'
 import PlayerSearchModal from './components/PlayerSearchModal'
 import RookieWarningModal from './components/RookieWarningModal'
 import ScoringSystemSelect from './components/ScoringSystemSelect'
-import { calculateTeamScore, calculateFantasyPoints, SCORING_SYSTEMS } from './utils/FantasyScoring'
+import { calculateTeamScore, calculateFantasyPoints, SCORING_SYSTEMS } from './utilities/FantasyScoring'
 import { getPlayerStats, hasStatsForYear, MOCK_HISTORICAL_STATS } from './data/MockStatsDatabase'
 
 function App() {
@@ -320,8 +320,8 @@ function App() {
       
       try {
         // Calculate real scores using the scoring system
-        const yourScore = calculateTeamScore(yourTeam.filter(p => !p.isEmpty), selectedYear, scoringSystem);
-        const opponentScore = calculateTeamScore(opponentTeam.filter(p => !p.isEmpty), selectedYear, scoringSystem);
+        const yourScore = calculateTeamScore(yourTeam.filter(p => !p.isEmpty), MOCK_HISTORICAL_STATS, scoringSystem);
+        const opponentScore = calculateTeamScore(opponentTeam.filter(p => !p.isEmpty), MOCK_HISTORICAL_STATS, scoringSystem);
         const winner = yourScore > opponentScore ? 'you' : yourScore < opponentScore ? 'opponent' : 'tie';
         
         // Calculate individual player scores
@@ -329,7 +329,7 @@ function App() {
         [...yourTeam, ...opponentTeam].filter(p => !p.isEmpty).forEach(player => {
           const stats = getPlayerStats(player.name, selectedYear);
           if (stats) {
-            playerScores[player.id] = calculateFantasyPoints(stats, scoringSystem);
+            playerScores[player.id] = calculateFantasyPoints(stats, player.position, scoringSystem);
           }
         });
         
