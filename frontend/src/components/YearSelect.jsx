@@ -11,7 +11,12 @@ function YearSelect({ selectedYear, onYearChange }) {
         <select
           id="year-select"
           value={selectedYear}
-          onChange={(e) => onYearChange(parseInt(e.target.value))}
+          onChange={(e) => {
+            const year = parseInt(e.target.value);
+            if (!isNaN(year) && year >= 2019 && year <= 2023) {
+              onYearChange(year);
+            }
+          }}
           className="px-3 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-700 text-white font-semibold text-sm"
         >
           {availableYears.map(year => (

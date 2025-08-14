@@ -14,7 +14,7 @@ function Scoreboard({ yourScore = 0, opponentScore = 0, winner = null }) {
           <div className={`text-3xl font-bold ${
             winner === 'you' ? 'text-blue-400' : 'text-white'
           }`}>
-            {yourScore.toFixed(1)}
+            {typeof yourScore === 'number' ? yourScore.toFixed(1) : '0.0'}
           </div>
           {winner === 'you' && (
             <div className="text-blue-400 font-semibold text-xs mt-1">WINNER! 🏆</div>
@@ -30,7 +30,7 @@ function Scoreboard({ yourScore = 0, opponentScore = 0, winner = null }) {
           <div className={`text-3xl font-bold ${
             winner === 'opponent' ? 'text-red-400' : 'text-white'
           }`}>
-            {opponentScore.toFixed(1)}
+            {typeof opponentScore === 'number' ? opponentScore.toFixed(1) : '0.0'}
           </div>
           {winner === 'opponent' && (
             <div className="text-red-400 font-semibold text-xs mt-1">WINNER! 🏆</div>
