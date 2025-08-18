@@ -137,18 +137,17 @@ export const SCORING_SYSTEMS = {
         break;
   
       case 'K':
+        // Handle simple field goals (assuming average of 3 points per field goal)
+        const fieldGoals = playerStats.fieldGoals || 0;
+        points += fieldGoals * 3; // Average 3 points per field goal
+        
+        // Handle extra points
         points += (playerStats.extraPoints || 0) * rules.extraPoints;
-        points += (playerStats.fieldGoals0_39 || 0) * rules.fieldGoals0_39;
-        points += (playerStats.fieldGoals40_49 || 0) * rules.fieldGoals40_49;
-        points += (playerStats.fieldGoals50_59 || 0) * rules.fieldGoals50_59;
-        points += (playerStats.fieldGoals60Plus || 0) * rules.fieldGoals60Plus;
-        points += (playerStats.missedExtraPoints || 0) * rules.missedExtraPoints;
-        points += (playerStats.missedFieldGoals || 0) * rules.missedFieldGoals;
         break;
   
       case 'DEF':
-        // Points allowed scoring
-        const pointsAllowed = playerStats.pointsAllowed || 0;
+        // Points allowed scoring - use defensePointsAllowed from our stats
+        const pointsAllowed = playerStats.defensePointsAllowed || 0;
         if (pointsAllowed === 0) points += rules.pointsAllowed0;
         else if (pointsAllowed <= 6) points += rules.pointsAllowed1_6;
         else if (pointsAllowed <= 13) points += rules.pointsAllowed7_13;
@@ -156,14 +155,13 @@ export const SCORING_SYSTEMS = {
         else if (pointsAllowed <= 27) points += rules.pointsAllowed21_27;
         else if (pointsAllowed <= 34) points += rules.pointsAllowed28_34;
         else points += rules.pointsAllowed35Plus;
-  
-        // Other defensive stats
-        points += (playerStats.sacks || 0) * rules.sacks;
-        points += (playerStats.interceptions || 0) * rules.interceptions;
-        points += (playerStats.fumblesRecovered || 0) * rules.fumblesRecovered;
-        points += (playerStats.safeties || 0) * rules.safeties;
-        points += (playerStats.defensiveTDs || 0) * rules.defensiveTDs;
-        points += (playerStats.blockedKicks || 0) * rules.blockedKicks;
+
+        // Other defensive stats - use our simplified field names
+        points += (playerStats.defenseSacks || 0) * rules.sacks;
+        points += (playerStats.defenseInterceptions || 0) * rules.interceptions;
+        points += (playerStats.defenseFumbleRecoveries || 0) * rules.fumblesRecovered;
+        points += (playerStats.defenseSafeties || 0) * rules.safeties;
+        points += (playerStats.defenseTDs || 0) * rules.defensiveTDs;
         break;
   
       default:
@@ -177,18 +175,26 @@ export const SCORING_SYSTEMS = {
   // Calculate total team score
   export function calculateTeamScore(players, playerStats, scoringSystem = SCORING_SYSTEMS.PPR) {
     let totalScore = 0;
-  
+    
+    console.log('Calculating team score for players:', players);
+    console.log('Player stats:', playerStats);
+    console.log('Scoring system:', scoringSystem);
+
     players.forEach(player => {
-      if (!player.isEmpty && playerStats[player.name]) {
+      if (player && player.name && playerStats[player.name]) {
         const playerPoints = calculateFantasyPoints(
           playerStats[player.name], 
           player.position, 
           scoringSystem
         );
+        console.log(`${player.name} (${player.position}): ${playerPoints} points`);
         totalScore += playerPoints;
+      } else {
+        console.log(`Skipping ${player?.name || 'unknown'} - no stats available`);
       }
     });
-  
+
+    console.log('Total team score:', totalScore);
     return Math.round(totalScore * 10) / 10;
   }
   

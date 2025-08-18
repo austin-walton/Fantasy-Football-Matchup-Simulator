@@ -1,17 +1,16 @@
 import { useState, useEffect, useMemo } from 'react'
 import TeamColumn from './components/TeamColumn'
 import Scoreboard from './components/Scoreboard'
-import YearSelect from './components/YearSelect'
+import WeekSelect from './components/WeekSelect'
 import SimulateButton from './components/SimulateButton'
 import PlayerSearchModal from './components/PlayerSearchModal'
 import RookieWarningModal from './components/RookieWarningModal'
-import ScoringSystemSelect from './components/ScoringSystemSelect'
 import { calculateTeamScore, calculateFantasyPoints, SCORING_SYSTEMS } from './utilities/FantasyScoring'
-import { getPlayerStats, hasStatsForYear, MOCK_HISTORICAL_STATS } from './data/MockStatsDatabase'
+import { getPlayerStats, hasStatsForYear, getPlayers, getTeamStats } from './data/MockStatsDatabase'
 
 function App() {
   const [selectedYear, setSelectedYear] = useState(2023);
-  const [scoringSystem, setScoringSystem] = useState(SCORING_SYSTEMS.PPR);
+  const [selectedWeek, setSelectedWeek] = useState(1); // Add week selector
   const [isSimulating, setIsSimulating] = useState(false);
   const [showPlayerSearch, setShowPlayerSearch] = useState(false);
   const [showRookieWarning, setShowRookieWarning] = useState(false);
@@ -29,6 +28,10 @@ function App() {
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   
+  // Add loading state for player database
+  const [isLoadingPlayers, setIsLoadingPlayers] = useState(false);
+  const [playerDatabase, setPlayerDatabase] = useState([]);
+  
   // Cleanup effect
   useEffect(() => {
     return () => {
@@ -41,6 +44,25 @@ function App() {
     };
   }, []);
   
+  // Load player database when year changes
+  useEffect(() => {
+    const loadPlayerDatabase = async () => {
+      setIsLoadingPlayers(true);
+      try {
+        const players = await getPlayers(selectedYear);
+        setPlayerDatabase(players);
+      } catch (error) {
+        console.error('Error loading player database:', error);
+        setErrorMessage('Failed to load player database');
+        setHasError(true);
+      } finally {
+        setIsLoadingPlayers(false);
+      }
+    };
+
+    loadPlayerDatabase();
+  }, [selectedYear]);
+
   // Enhanced team structure with empty slots
   const [yourTeam, setYourTeam] = useState([
     { id: 1, name: '', position: 'QB', team: '', isEmpty: true },
@@ -65,46 +87,6 @@ function App() {
     { id: 17, name: '', position: 'DEF', team: '', isEmpty: true },
     { id: 18, name: '', position: 'K', team: '', isEmpty: true }
   ]);
-
-  // Mock NFL player database - In production, this would come from an API
-  const playerDatabase = useMemo(() => [
-    // QBs
-    { name: 'Josh Allen', position: 'QB', team: 'BUF', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'Patrick Mahomes', position: 'QB', team: 'KC', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'Lamar Jackson', position: 'QB', team: 'BAL', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'C.J. Stroud', position: 'QB', team: 'HOU', hasStats: { 2023: true } }, // Rookie example
-    { name: 'Jalen Hurts', position: 'QB', team: 'PHI', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    
-    // RBs
-    { name: 'Christian McCaffrey', position: 'RB', team: 'SF', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'Derrick Henry', position: 'RB', team: 'TEN', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'Austin Ekeler', position: 'RB', team: 'LAC', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'Saquon Barkley', position: 'RB', team: 'NYG', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'Bijan Robinson', position: 'RB', team: 'ATL', hasStats: { 2023: true } }, // Rookie example
-    { name: 'Alvin Kamara', position: 'RB', team: 'NO', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    
-    // WRs
-    { name: 'Cooper Kupp', position: 'WR', team: 'LAR', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'Tyreek Hill', position: 'WR', team: 'MIA', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'Stefon Diggs', position: 'WR', team: 'BUF', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'Davante Adams', position: 'WR', team: 'LV', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'A.J. Brown', position: 'WR', team: 'PHI', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    
-    // TEs
-    { name: 'Travis Kelce', position: 'TE', team: 'KC', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'Mark Andrews', position: 'TE', team: 'BAL', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'Sam LaPorta', position: 'TE', team: 'DET', hasStats: { 2023: true } }, // Rookie example
-    
-    // DEF
-    { name: 'Cowboys', position: 'DEF', team: 'DAL', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: '49ers', position: 'DEF', team: 'SF', hasStats: { 2021: true, 2022: true, 2023: true } },
-    { name: 'Ravens', position: 'DEF', team: 'BAL', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    
-    // K
-    { name: 'Justin Tucker', position: 'K', team: 'BAL', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'Daniel Carlson', position: 'K', team: 'LV', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } },
-    { name: 'Harrison Butker', position: 'K', team: 'KC', hasStats: { 2020: true, 2021: true, 2022: true, 2023: true } }
-  ], []);
 
   const handlePlayerSearch = (teamType, position, playerId) => {
     try {
@@ -239,26 +221,39 @@ function App() {
     );
   };
 
-  const checkForPlayersWithoutStats = () => {
+  const checkForPlayersWithoutStats = async () => {
     const allPlayers = [...yourTeam, ...opponentTeam].filter(p => !p.isEmpty);
-    console.log('Checking stats for year:', selectedYear);
-    console.log('All players:', allPlayers);
+    console.log('🔍 Checking weekly stats for year:', selectedYear, 'week:', selectedWeek);
+    console.log('All players to check:', allPlayers);
     
-    const playersWithoutStats = allPlayers.filter(player => {
-      const hasStats = player.hasStats && player.hasStats !== null && player.hasStats[selectedYear];
-      console.log(`Player ${player.name} (${selectedYear}) has stats for ${selectedYear}:`, hasStats);
-      return !hasStats;
-    });
+    const playersWithoutStats = [];
     
-    console.log('Players without stats:', playersWithoutStats);
+    for (const player of allPlayers) {
+      console.log(`Checking ${player.name} for ${selectedYear}, Week ${selectedWeek}...`);
+      const hasStats = await hasStatsForYear(player.name, selectedYear, selectedWeek);
+      console.log(`Player ${player.name} (${selectedYear}, Week ${selectedWeek}) has stats:`, hasStats);
+      if (!hasStats) {
+        console.log(`❌ ${player.name} has NO weekly stats for ${selectedYear}, Week ${selectedWeek}`);
+        playersWithoutStats.push(player);
+      } else {
+        console.log(`✅ ${player.name} has weekly stats for ${selectedYear}, Week ${selectedWeek}`);
+      }
+    }
+    
+    console.log('📊 Final result - Players without weekly stats:', playersWithoutStats);
     return playersWithoutStats;
   };
 
   const handleSimulate = async () => {
+    console.log('🚀 SIMULATE BUTTON CLICKED!');
+    
     try {
       // Check if teams have players
       const yourTeamPlayers = yourTeam.filter(p => !p.isEmpty);
       const opponentTeamPlayers = opponentTeam.filter(p => !p.isEmpty);
+      
+      console.log('Your team players:', yourTeamPlayers);
+      console.log('Opponent team players:', opponentTeamPlayers);
       
       if (yourTeamPlayers.length === 0 || opponentTeamPlayers.length === 0) {
         alert('Please add players to both teams before simulating.');
@@ -292,65 +287,100 @@ function App() {
         return;
       }
       
+      console.log('✅ All validation checks passed, proceeding to simulation...');
+      
       // Check for players without stats
-      const problematicPlayers = checkForPlayersWithoutStats();
+      const problematicPlayers = await checkForPlayersWithoutStats();
       
       if (problematicPlayers.length > 0) {
+        console.log('⚠️ Players without stats found:', problematicPlayers);
         setPlayersWithoutStats(problematicPlayers);
         setShowRookieWarning(true);
         return;
       }
       
+      console.log('✅ All players have stats, starting simulation...');
+      
       // Proceed with simulation
       proceedWithSimulation();
     } catch (error) {
-      console.error('Error during simulation:', error);
-      setErrorMessage('Failed to start simulation');
+      console.error('❌ ERROR during simulation setup:', error);
+      setErrorMessage(`Failed to start simulation: ${error.message}`);
       setHasError(true);
     }
   };
 
-  const proceedWithSimulation = () => {
+  const proceedWithSimulation = async () => {
     setIsSimulating(true);
     
-    setTimeout(() => {
-      console.log('Simulating matchup for year:', selectedYear);
-      console.log('Your team:', yourTeam.filter(p => !p.isEmpty));
-      console.log('Opponent team:', opponentTeam.filter(p => !p.isEmpty));
+    try {
+      console.log('=== SIMULATION START ===');
+      console.log('Year:', selectedYear);
+      console.log('Week:', selectedWeek);
+      console.log('Your team players:', yourTeam.filter(p => !p.isEmpty));
+      console.log('Opponent team players:', opponentTeam.filter(p => !p.isEmpty));
       
-      try {
-        // Calculate real scores using the scoring system
-        const yourScore = calculateTeamScore(yourTeam.filter(p => !p.isEmpty), MOCK_HISTORICAL_STATS, scoringSystem);
-        const opponentScore = calculateTeamScore(opponentTeam.filter(p => !p.isEmpty), MOCK_HISTORICAL_STATS, scoringSystem);
-        const winner = yourScore > opponentScore ? 'you' : yourScore < opponentScore ? 'opponent' : 'tie';
-        
-        // Calculate individual player scores
-        const playerScores = {};
-        [...yourTeam, ...opponentTeam].filter(p => !p.isEmpty).forEach(player => {
-          const stats = getPlayerStats(player.name, selectedYear);
-          if (stats) {
-            playerScores[player.id] = calculateFantasyPoints(stats, player.position, scoringSystem);
-          }
-        });
-        
-        const results = {
-          yourScore,
-          opponentScore,
-          winner,
-          playerScores
-        };
-        
-        setSimulationResults(results);
-        setIsSimulating(false);
-        
-        console.log('Simulation results:', results);
-      } catch (error) {
-        console.error('Error during simulation:', error);
-        setIsSimulating(false);
-        setErrorMessage('Failed to complete simulation');
-        setHasError(true);
-      }
-    }, 2000);
+      // Get team stats from API for the specific week
+      const yourTeamPlayersFiltered = yourTeam.filter(p => !p.isEmpty);
+      const opponentTeamPlayersFiltered = opponentTeam.filter(p => !p.isEmpty);
+
+      console.log('=== FETCHING YOUR TEAM WEEKLY STATS ===');
+      console.log('Players to fetch stats for:', yourTeamPlayersFiltered.map(p => p.name));
+      const yourTeamStats = await getTeamStats(yourTeamPlayersFiltered, selectedYear, selectedWeek);
+      console.log('Your team weekly stats received:', yourTeamStats);
+      
+      console.log('=== FETCHING OPPONENT TEAM WEEKLY STATS ===');
+      console.log('Players to fetch stats for:', opponentTeamPlayersFiltered.map(p => p.name));
+      const opponentTeamStats = await getTeamStats(opponentTeamPlayersFiltered, selectedYear, selectedWeek);
+      console.log('Opponent team weekly stats received:', opponentTeamStats);
+
+      // Calculate real scores using the scoring system
+      console.log('=== CALCULATING TEAM SCORES ===');
+      const yourScore = calculateTeamScore(yourTeamPlayersFiltered, yourTeamStats, SCORING_SYSTEMS.PPR);
+      const opponentScore = calculateTeamScore(opponentTeamPlayersFiltered, opponentTeamStats, SCORING_SYSTEMS.PPR);
+      const winner = yourScore > opponentScore ? 'you' : yourScore < opponentScore ? 'opponent' : 'tie';
+      
+      console.log('Final calculated scores:', { yourScore, opponentScore, winner });
+
+      // Calculate individual player scores
+      console.log('=== CALCULATING INDIVIDUAL PLAYER SCORES ===');
+      const playerScores = {};
+      [...yourTeamPlayersFiltered, ...opponentTeamPlayersFiltered].forEach(player => {
+        const stats = yourTeamStats[player.name] || opponentTeamStats[player.name];
+        if (stats) {
+          const points = calculateFantasyPoints(stats, player.position, SCORING_SYSTEMS.PPR);
+          playerScores[player.id] = points;
+          console.log(`${player.name} (${player.position}): ${points} points`);
+        } else {
+          console.log(`❌ No weekly stats found for ${player.name} - this is the problem!`);
+          playerScores[player.id] = 0;
+        }
+      });
+
+      const results = {
+        yourScore,
+        opponentScore,
+        winner,
+        playerScores
+      };
+
+      console.log('=== SIMULATION COMPLETE ===');
+      console.log('Final results:', results);
+      console.log('Player scores object:', playerScores);
+      
+      // Update the state with results
+      setSimulationResults(results);
+      setIsSimulating(false);
+
+      // Force a re-render to show results
+      console.log('✅ Simulation results updated in state:', results);
+
+    } catch (error) {
+      console.error('❌ ERROR during simulation:', error);
+      setIsSimulating(false);
+      setErrorMessage('Failed to complete simulation');
+      setHasError(true);
+    }
   };
 
   const handleRookieWarningProceed = () => {
@@ -378,8 +408,9 @@ function App() {
         </div>
 
         {/* Year Selector */}
-        <YearSelect 
+        <WeekSelect 
           selectedYear={selectedYear} 
+          selectedWeek={selectedWeek}
           onYearChange={(year) => {
             try {
               console.log('Year changed to:', year);
@@ -404,14 +435,9 @@ function App() {
               setHasError(true);
             }
           }} 
-        />
-
-        {/* Scoring System Selector */}
-        <ScoringSystemSelect 
-          scoringSystem={scoringSystem}
-          onScoringSystemChange={(system) => {
-            setScoringSystem(system);
-            // Reset simulation results when scoring system changes
+          onWeekChange={(week) => {
+            setSelectedWeek(week);
+            // Reset simulation results when week changes
             setSimulationResults({
               yourScore: 0,
               opponentScore: 0,
@@ -426,7 +452,27 @@ function App() {
           yourScore={simulationResults.yourScore} 
           opponentScore={simulationResults.opponentScore} 
           winner={simulationResults.winner}
+          onReset={() => {
+            console.log('🔄 Resetting simulation results...');
+            setSimulationResults({
+              yourScore: 0,
+              opponentScore: 0,
+              winner: null,
+              playerScores: {}
+            });
+          }}
         />
+
+        {/* Debug Info - Remove this after fixing */}
+        <div className="mb-4 p-3 bg-gray-800 rounded border border-gray-600">
+          <div className="text-xs text-gray-400">Debug Info:</div>
+          <div className="text-xs text-white">
+            Your Score: {simulationResults.yourScore} | 
+            Opponent Score: {simulationResults.opponentScore} | 
+            Winner: {simulationResults.winner} | 
+            Player Scores Count: {Object.keys(simulationResults.playerScores).length}
+          </div>
+        </div>
 
         {/* Main Matchup Layout */}
         <div className="flex flex-col lg:flex-row gap-6 mb-6">
@@ -451,6 +497,18 @@ function App() {
             selectedYear={selectedYear}
             playerScores={simulationResults.playerScores}
           />
+        </div>
+
+        {/* Debug Team Info - Remove this after fixing */}
+        <div className="mb-4 p-3 bg-gray-800 rounded border border-gray-600">
+          <div className="text-xs text-gray-400">Team Debug Info:</div>
+          <div className="text-xs text-white">
+            Your Team Players: {yourTeam.filter(p => !p.isEmpty).map(p => p.name).join(', ')} | 
+            Opponent Team Players: {opponentTeam.filter(p => !p.isEmpty).map(p => p.name).join(', ')}
+          </div>
+          <div className="text-xs text-white">
+            Player Scores Keys: {Object.keys(simulationResults.playerScores).join(', ')}
+          </div>
         </div>
 
         {/* Simulate Button */}
@@ -491,7 +549,8 @@ function App() {
             <div>✅ Day 2: Dark Mode UI Layout</div>
             <div>✅ Day 3: Player Data Integration + FLEX Position + Numbered Slots + Duplicate Prevention</div>
             <div>✅ Day 4: Scoring Engine + Multiple Scoring Systems</div>
-            <div>⏳ Day 5: Enhanced Simulation + Player Stats</div>
+            <div>✅ Day 5: Enhanced Simulation + Player Stats</div>
+            <div>🎯 Day 6: Real NFL API Integration (Sports Reference)</div>
           </div>
         </div>
       </div>
@@ -508,6 +567,7 @@ function App() {
             setSearchingForPosition(null);
           }}
           currentTeam={searchingForTeam === 'your' ? yourTeam : opponentTeam}
+          isLoading={isLoadingPlayers}
         />
       )}
 

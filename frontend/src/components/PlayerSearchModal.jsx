@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-function PlayerSearchModal({ players, position, onSelect, onClose, currentTeam = [] }) {
+function PlayerSearchModal({ players, position, onSelect, onClose, currentTeam = [], isLoading = false }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredPlayers, setFilteredPlayers] = useState([]);
 
@@ -74,13 +74,19 @@ function PlayerSearchModal({ players, position, onSelect, onClose, currentTeam =
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               autoFocus
+              disabled={isLoading}
             />
           </div>
         </div>
 
         {/* Player List */}
         <div className="flex-1 overflow-y-auto p-4">
-          {filteredPlayers.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center text-gray-400 py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <div>Loading players...</div>
+            </div>
+          ) : filteredPlayers.length === 0 ? (
             <div className="text-center text-gray-400 py-8">
               {searchTerm 
                 ? `No ${position === 'FLEX' ? 'RBs or WRs' : 
@@ -135,12 +141,12 @@ function PlayerSearchModal({ players, position, onSelect, onClose, currentTeam =
         {/* Footer */}
         <div className="p-4 border-t border-gray-700">
           <div className="text-xs text-gray-400 text-center">
-            {filteredPlayers.length} {
+            {isLoading ? 'Loading...' : `${filteredPlayers.length} ${
               position === 'FLEX' ? 'RB/WR' : 
               position.startsWith('RB') ? 'RB' : 
               position.startsWith('WR') ? 'WR' : 
               position
-            }{filteredPlayers.length !== 1 ? 's' : ''} found
+            }${filteredPlayers.length !== 1 ? 's' : ''} found`}
           </div>
         </div>
       </div>

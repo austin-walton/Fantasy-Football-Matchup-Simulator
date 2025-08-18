@@ -1,4 +1,6 @@
-function Scoreboard({ yourScore = 0, opponentScore = 0, winner = null }) {
+function Scoreboard({ yourScore = 0, opponentScore = 0, winner = null, onReset = null }) {
+  const hasResults = yourScore > 0 || opponentScore > 0;
+  
   return (
     <div className="bg-gray-800 rounded-lg shadow-lg p-4 mb-4">
       <div className="text-center mb-3">
@@ -42,6 +44,18 @@ function Scoreboard({ yourScore = 0, opponentScore = 0, winner = null }) {
       {winner === 'tie' && (
         <div className="text-center mt-3">
           <div className="text-gray-400 font-semibold text-sm">IT'S A TIE! 🤝</div>
+        </div>
+      )}
+
+      {/* Reset Button - only show when there are results */}
+      {hasResults && onReset && (
+        <div className="text-center mt-4">
+          <button
+            onClick={onReset}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors text-sm"
+          >
+            🔄 Simulate New Matchup
+          </button>
         </div>
       )}
     </div>

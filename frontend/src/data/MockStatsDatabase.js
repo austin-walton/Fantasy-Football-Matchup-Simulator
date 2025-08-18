@@ -1,178 +1,75 @@
-// Mock historical stats database
-export const MOCK_HISTORICAL_STATS = {
-  'Josh Allen': {
-    2023: {
-      passingYards: 4306,
-      passingTDs: 35,
-      interceptions: 14,
-      rushingYards: 762,
-      rushingTDs: 5,
-      receptions: 0,
-      receivingYards: 0,
-      receivingTDs: 0
-    },
-    2022: {
-      passingYards: 4283,
-      passingTDs: 35,
-      interceptions: 14,
-      rushingYards: 762,
-      rushingTDs: 7,
-      receptions: 0,
-      receivingYards: 0,
-      receivingTDs: 0
-    }
-  },
-  'Patrick Mahomes': {
-    2023: {
-      passingYards: 4183,
-      passingTDs: 31,
-      interceptions: 8,
-      rushingYards: 389,
-      rushingTDs: 0,
-      receptions: 0,
-      receivingYards: 0,
-      receivingTDs: 0
-    },
-    2022: {
-      passingYards: 5250,
-      passingTDs: 41,
-      interceptions: 12,
-      rushingYards: 358,
-      rushingTDs: 4,
-      receptions: 0,
-      receivingYards: 0,
-      receivingTDs: 0
-    }
-  },
-  'Christian McCaffrey': {
-    2023: {
-      passingYards: 0,
-      passingTDs: 0,
-      interceptions: 0,
-      rushingYards: 1459,
-      rushingTDs: 14,
-      receptions: 67,
-      receivingYards: 564,
-      receivingTDs: 7
-    },
-    2022: {
-      passingYards: 0,
-      passingTDs: 0,
-      interceptions: 0,
-      rushingYards: 1139,
-      rushingTDs: 8,
-      receptions: 85,
-      receivingYards: 741,
-      receivingTDs: 5
-    }
-  },
-  'Derrick Henry': {
-    2023: {
-      passingYards: 0,
-      passingTDs: 0,
-      interceptions: 0,
-      rushingYards: 1167,
-      rushingTDs: 12,
-      receptions: 28,
-      receivingYards: 214,
-      receivingTDs: 0
-    },
-    2022: {
-      passingYards: 0,
-      passingTDs: 0,
-      interceptions: 0,
-      rushingYards: 1538,
-      rushingTDs: 13,
-      receptions: 33,
-      receivingYards: 398,
-      receivingTDs: 0
-    }
-  },
-  'Tyreek Hill': {
-    2023: {
-      passingYards: 0,
-      passingTDs: 0,
-      interceptions: 0,
-      rushingYards: 0,
-      rushingTDs: 0,
-      receptions: 119,
-      receivingYards: 1799,
-      receivingTDs: 13
-    },
-    2022: {
-      passingYards: 0,
-      passingTDs: 0,
-      interceptions: 0,
-      rushingYards: 32,
-      rushingTDs: 0,
-      receptions: 119,
-      receivingYards: 1799,
-      receivingTDs: 7
-    }
-  },
-  'Travis Kelce': {
-    2023: {
-      passingYards: 0,
-      passingTDs: 0,
-      interceptions: 0,
-      rushingYards: 0,
-      rushingTDs: 0,
-      receptions: 93,
-      receivingYards: 984,
-      receivingTDs: 5
-    },
-    2022: {
-      passingYards: 0,
-      passingTDs: 0,
-      interceptions: 0,
-      rushingYards: 0,
-      rushingTDs: 0,
-      receptions: 110,
-      receivingYards: 1338,
-      receivingTDs: 12
-    }
-  },
-  'Cowboys': {
-    2023: {
-      defensePointsAllowed: 19.5,
-      defenseSacks: 46,
-      defenseInterceptions: 18,
-      defenseFumbleRecoveries: 12,
-      defenseSafeties: 0,
-      defenseTDs: 1
-    },
-    2022: {
-      defensePointsAllowed: 20.1,
-      defenseSacks: 54,
-      defenseInterceptions: 16,
-      defenseFumbleRecoveries: 10,
-      defenseSafeties: 0,
-      defenseTDs: 2
-    }
-  },
-  'Justin Tucker': {
-    2023: {
-      fieldGoals: 32,
-      extraPoints: 35
-    },
-    2022: {
-      fieldGoals: 37,
-      extraPoints: 42
-    }
+// Real NFL API service - replaces mock data
+import apiService from '../services/api';
+
+// Get player stats for a specific year and week
+export const getPlayerStats = async (playerName, year, week) => {
+  try {
+    return await apiService.getPlayerStats(playerName, year, week);
+  } catch (error) {
+    console.error('Error getting player stats:', error);
+    return null;
   }
 };
 
-// Get player stats for a specific year
-export const getPlayerStats = (playerName, year) => {
-  const playerStats = MOCK_HISTORICAL_STATS[playerName];
-  if (playerStats && playerStats[year]) {
-    return playerStats[year];
+// Check if a player has stats for a specific year and week
+export const hasStatsForYear = async (playerName, year, week) => {
+  try {
+    return await apiService.hasStatsForYear(playerName, year, week);
+  } catch (error) {
+    console.error('Error checking player stats:', error);
+    return false;
   }
-  return null;
 };
 
-// Check if a player has stats for a specific year
-export const hasStatsForYear = (playerName, year) => {
-  const playerStats = MOCK_HISTORICAL_STATS[playerName];
-  return playerStats && playerStats[year];
+// Get all players for a specific year
+export const getPlayers = async (year) => {
+  try {
+    return await apiService.getPlayers(year);
+  } catch (error) {
+    console.error('Error getting players:', error);
+    return [];
+  }
 };
+
+// Get players by position for a specific year
+export const getPlayersByPosition = async (year, position) => {
+  try {
+    return await apiService.getPlayersByPosition(year, position);
+  } catch (error) {
+    console.error('Error getting players by position:', error);
+    return [];
+  }
+};
+
+// Search players for a specific year
+export const searchPlayers = async (year, searchTerm) => {
+  try {
+    return await apiService.searchPlayers(year, searchTerm);
+  } catch (error) {
+    console.error('Error searching players:', error);
+    return [];
+  }
+};
+
+// Get team stats for simulation (now supports weekly stats)
+export const getTeamStats = async (players, year, week) => {
+  try {
+    return await apiService.getTeamStats(players, year, week);
+  } catch (error) {
+    console.error('Error getting team stats:', error);
+    return {};
+  }
+};
+
+// Get available years
+export const getAvailableYears = async () => {
+  try {
+    return await apiService.getAvailableYears();
+  } catch (error) {
+    console.error('Error getting available years:', error);
+    return [2020, 2021, 2022, 2023, 2024]; // Fallback to default years
+  }
+};
+
+// Legacy export for backward compatibility
+export const MOCK_HISTORICAL_STATS = {};
