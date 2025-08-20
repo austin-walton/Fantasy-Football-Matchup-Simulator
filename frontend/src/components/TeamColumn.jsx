@@ -1,6 +1,35 @@
 import PlayerRow from './PlayerRow'
+import { useState, useEffect } from 'react'
+import apiService from '../services/api'
 
-function TeamColumn({ teamName, players, isOpponent, onPlayerSearch, onRemovePlayer, selectedYear, playerScores = {} }) {
+function TeamColumn({ teamName, players, isOpponent, onPlayerSearch, onRemovePlayer, selectedYear, selectedWeek, playerScores = {} }) {
+  const [playerStatsStatus, setPlayerStatsStatus] = useState({});
+
+  // Check stats for all players when year/week changes
+  useEffect(() => {
+    const checkPlayerStats = async () => {
+      const statsStatus = {};
+      
+      for (const player of players) {
+        if (!player.isEmpty && player.name) {
+          try {
+            const hasStats = await apiService.hasStatsForYear(player.name, selectedYear, selectedWeek);
+            statsStatus[player.id] = hasStats;
+          } catch (error) {
+            console.error(`Error checking stats for ${player.name}:`, error);
+            statsStatus[player.id] = false;
+          }
+        }
+      }
+      
+      setPlayerStatsStatus(statsStatus);
+    };
+
+    if (selectedYear && selectedWeek) {
+      checkPlayerStats();
+    }
+  }, [players, selectedYear, selectedWeek]);
+
   return (
     <div className="flex-1 bg-gray-800 rounded-lg border border-gray-700 p-4">
       <h2 className={`text-xl font-bold mb-4 text-center ${
@@ -18,6 +47,7 @@ function TeamColumn({ teamName, players, isOpponent, onPlayerSearch, onRemovePla
             onRemovePlayer={() => onRemovePlayer(player.id)}
             selectedYear={selectedYear}
             allTeamPlayers={players}
+            hasStats={playerStatsStatus[player.id] || false}
           />
         ))}
       </div>

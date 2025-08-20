@@ -484,6 +484,7 @@ function App() {
             onPlayerSearch={(position, playerId) => handlePlayerSearch('your', position, playerId)}
             onRemovePlayer={(playerId) => handleRemovePlayer(playerId, 'your')}
             selectedYear={selectedYear}
+            selectedWeek={selectedWeek}
             playerScores={simulationResults.playerScores}
           />
 
@@ -495,6 +496,7 @@ function App() {
             onPlayerSearch={(position, playerId) => handlePlayerSearch('opponent', position, playerId)}
             onRemovePlayer={(playerId) => handleRemovePlayer(playerId, 'opponent')}
             selectedYear={selectedYear}
+            selectedWeek={selectedWeek}
             playerScores={simulationResults.playerScores}
           />
         </div>

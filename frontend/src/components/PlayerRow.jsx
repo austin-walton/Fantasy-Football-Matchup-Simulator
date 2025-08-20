@@ -1,11 +1,12 @@
-function PlayerRow({ player, points = 0.0, onPlayerSearch, onRemovePlayer, selectedYear, allTeamPlayers = [] }) {
+function PlayerRow({ player, points = 0.0, onPlayerSearch, onRemovePlayer, selectedYear, allTeamPlayers = [], hasStats = true }) {
   // Validate props
   if (!player || !player.position) {
     console.error('Invalid player data in PlayerRow:', player);
     return null;
   }
   
-  const hasStatsForYear = player.hasStats && player.hasStats !== null && player.hasStats[selectedYear];
+  // Use the hasStats prop passed from parent instead of player.hasStats
+  const hasStatsForYear = hasStats;
   
   // Check if this player appears multiple times on the team
   const playerOccurrences = allTeamPlayers.filter(p => 

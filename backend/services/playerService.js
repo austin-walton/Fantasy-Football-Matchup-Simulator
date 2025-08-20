@@ -1,10 +1,10 @@
-const nflApiService = require('./nflApiService');
+const sleeperService = require('./sleeperService');
 
 class PlayerService {
   // Get all players for a specific year
   async getPlayers(year) {
     try {
-      return await nflApiService.getPlayers(year);
+      return await sleeperService.getPlayers(year);
     } catch (error) {
       console.error('Error in player service getPlayers:', error);
       throw error;
@@ -51,7 +51,7 @@ class PlayerService {
   // Get player stats for a specific year and week
   async getPlayerStats(playerName, year, week) {
     try {
-      return await nflApiService.getPlayerStats(playerName, year, week);
+      return await sleeperService.getPlayerStats(playerName, year, week);
     } catch (error) {
       console.error('Error in player service getPlayerStats:', error);
       return null;
@@ -61,7 +61,7 @@ class PlayerService {
   // Check if player has stats for a specific year and week
   async hasStatsForYear(playerName, year, week) {
     try {
-      return await nflApiService.hasStatsForYear(playerName, year, week);
+      return await sleeperService.hasStatsForYear(playerName, year, week);
     } catch (error) {
       console.error('Error in player service hasStatsForYear:', error);
       return false;
@@ -70,7 +70,7 @@ class PlayerService {
 
   // Get available years
   getAvailableYears() {
-    return nflApiService.getAvailableYears();
+    return sleeperService.getAvailableYears();
   }
 
   // Get all player stats for a team (used for simulation) - now supports weekly stats
